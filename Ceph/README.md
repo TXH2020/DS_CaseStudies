@@ -19,3 +19,5 @@ Output of the above command orders to issue the command as follows:
 However, it said the pool deletion was disabled; to enable mon_allow_pool_delete had to be set to true. I added the line to ceph.conf and rebooted but it didnt work. Finally, I tried the following command:
 
 ``sudo ceph tell mon.* injectargs --mon_allow_pool_delete true``, following which the "test" pool was deleted. Even the Python code for pool deletion worked.
+
+Concepts learnt: Ceph architecture, ceph client through librados python and ceph admin CLI, File vs Objects, CAP theorem, High Availability, Consistency Models(Linearizability, Serializability, Causal Consistency, Eventual Consistency), Ceph Papers Analysis(Ceph, CRUSH and RADOS), points related to bluestore and Ceph alternatives(Lustre and Gluster). 
