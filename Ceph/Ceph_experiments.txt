@@ -1,0 +1,25 @@
+$ ceph osd pool create cephfs_data
+$ ceph osd pool create cephfs_metadata
+ceph fs new cephfs cephfs_metadata cephfs_data
+ceph fs set cephfs max_mds 2 
+------------------ allow_standby_replay true
+
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip awscliv2.zip
+sudo ./aws/install
+
+	    "user": "rootadminz",
+            "access_key": "IY6IECNTAOG3F7NOONSP",
+            "secret_key": "OeqSbA7INlDeeJRIx0Dzumyj3Qplcyvd4hT4KLgY",
+
+
+aws configure --profile=ceph
+aws --profile=ceph --endpoint=http://192.168.0.115:8080 s3 mb s3://test
+aws --profile=ceph --endpoint=http://192.168.0.115:8080 s3 ls
+aws --profile=ceph --endpoint=http://192.168.0.115:8080 s3 cp ceph_test.py s3://test
+aws --profile=ceph --endpoint=http://192.168.0.115:8080 s3 ls s3://test
+sudo microceph enable rgw --port 8080
+change /var/snap/microceph/1228/conf/radosgw.conf port to 8080
+
+https://www.ucartz.com/clients/knowledgebase/2180/How-To-Configure-AWS-S3-CLI-for-Ceph-Object-Gateway-Storage.html
+https://docs.ceph.com/en/reef/man/8/radosgw/

@@ -1,0 +1,42 @@
+docker compose -f kafka_kraft.yaml up -d
+docker compose -f kafka_kraft.yaml down
+./kafka-topics.sh --bootstrap-server broker-1:19092 --describe --topic hello -> topic info: leader,partition,replica
+
+ cat /tmp/kafka-logs/meta.properties
+#
+#Sat Jan 04 15:24:30 GMT 2025
+cluster.id=5L6g3nShT-eMCtK--X86sw
+directory.id=hXcQdBRUdYT9FAnEq_zgXQ
+node.id=4
+version=1
+client(producer) contacts broker 1. For topic creation, leader is chosen by controller. broker 1 contacts leader. leader has topic. metadata passed to broker 1. broker 1 shows metadata.
+
+./kafka-metadata-quorum.sh --bootstrap-server localhost:19092 describe --status
+ClusterId:              5L6g3nShT-eMCtK--X86sw
+LeaderId:               3
+LeaderEpoch:            4
+HighWatermark:          9254
+MaxFollowerLag:         0
+MaxFollowerLagTimeMs:   198
+CurrentVoters:          [{"id": 1, "directoryId": null, "endpoints": ["CONTROLLER://controller-1:9093"]}, {"id": 2, "directoryId": null, "endpoints": ["CONTROLLER://controller-2:9093"]}, {"id": 3, "directoryId": null, "endpoints": ["CONTROLLER://controller-3:9093"]}]
+CurrentObservers:       [{"id": 5, "directoryId": "O3prMRpFuzLnfQf-tgBomg"}, {"id": 6, "directoryId": "t2b49wF-DSOg24rz7t385g"}, {"id": 4, "directoryId": "hXcQdBRUdYT9FAnEq_zgXQ"}]
+
+broker 3 has topic hello. lets down it. topic metadata is there. but we cant produce to it(produced data will be lost).
+only when broker 3 comes up, we can produce.
+good to specify replica number at topic creation time. altering replication factor looks a bit complicated.https://stackoverflow.com/questions/37960767/how-to-change-the-number-of-replicas-of-a-kafka-topic/43518389#43518389
+
+/opt/kafka/bin $ ./kafka-topics.sh --bootstrap-server broker-1:19092 --create --topic test --partitions 3 --replication-factor 2
+Created topic test.
+/opt/kafka/bin $ ./kafka-topics.sh --bootstrap-server broker-1:19092 --describe --topic test
+Topic: test     TopicId: uOSouAagQKu423Ge-rP-xg PartitionCount: 3       ReplicationFactor: 2    Configs:
+        Topic: test     Partition: 0    Leader: 6       Replicas: 6,4   Isr: 6,4        Elr:    LastKnownElr:
+        Topic: test     Partition: 1    Leader: 4       Replicas: 4,5   Isr: 4,5        Elr:    LastKnownElr:
+        Topic: test     Partition: 2    Leader: 5       Replicas: 5,6   Isr: 5,6        Elr:    LastKnownElr:
+
+created topic with 1 partition 2 replicas. replicas are on 5,6. leader is 5.
+From 4, produced to topic. then stopped 5. then produced, consumer threw warning but consumed produced messages
+WARN [Consumer clientId=console-consumer, groupId=console-consumer-95122] Error connecting to node broker-2:19092 (id: 5 rack: null) (org.apache.kafka.clients.NetworkClient)
+java.net.UnknownHostException: broker-2: Name does not resolve
+Then started 5. Then stopped 6. Checked if 5 has all prodcued messages that were produced when it was down. It does have.
+
+pip install kafka-python
